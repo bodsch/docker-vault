@@ -1,0 +1,28 @@
+---
+version: '2.0'
+
+services:
+
+  consul-master:
+    image: bodsch/docker-consul:1709-37.1
+    container_name: consul-master
+    hostname: consul-master
+    ports:
+      - 8400:8400
+      - 8500:8500
+      - 53:53
+    command: "agent -dev -client=0.0.0.0"
+
+  vault:
+    build: .
+    container_name: vault
+    hostname: vault
+    ports:
+      - 8200:8200
+    links:
+      - consul-master:consul
+    depends_on:
+      - consul-master
+    volumes:
+      - ./config/vault.conf:/config/vault.conf
+    command: "server -config=/config/vault.conf"
