@@ -17,10 +17,10 @@ EXPOSE 8200
 LABEL \
   version="1709-37" \
   org.label-schema.build-date=${BUILD_DATE} \
-  org.label-schema.name="Consul Docker Image" \
-  org.label-schema.description="Inofficial Consul Docker Image" \
-  org.label-schema.url="https://www.consul.io/" \
-  org.label-schema.vcs-url="https://github.com/bodsch/docker-consul" \
+  org.label-schema.name="Vault Docker Image" \
+  org.label-schema.description="Inofficial Vault Docker Image" \
+  org.label-schema.url="https://www.vaultproject.io/" \
+  org.label-schema.vcs-url="https://github.com/bodsch/docker-vault" \
   org.label-schema.vendor="Bodo Schulz" \
   org.label-schema.version=${VAULT_VERSION} \
   org.label-schema.schema-version="1.0" \
@@ -42,13 +42,13 @@ RUN \
     --cacert /etc/ssl/certs/ca-certificates.crt \
     --output /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
     "${VAULT_URL}/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" && \
-  unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip -d /bin/ && \
+  unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin/ && \
   apk --purge del ${APK_ADD} && \
   rm -rf \
     /tmp/* \
     /var/cache/apk/*
 
-ENTRYPOINT [ "/bin/vault" ]
+ENTRYPOINT [ "/usr/bin/vault" ]
 
 CMD [ "version" ]
 

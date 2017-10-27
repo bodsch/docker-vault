@@ -1,10 +1,17 @@
 ---
 version: '2.0'
 
+networks:
+  consul:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+
 services:
 
   consul-master:
-    image: bodsch/docker-consul:1709-37.1
+    image: bodsch/docker-consul:1.0.0
     container_name: consul-master
     hostname: consul-master
     ports:
@@ -12,6 +19,9 @@ services:
       - 8500:8500
       - 53:53
     command: "agent -dev -client=0.0.0.0"
+    networks:
+      consul:
+        ipv4_address: 192.168.10.10
 
   vault:
     build: .
@@ -26,3 +36,6 @@ services:
     volumes:
       - ./config/vault.conf:/config/vault.conf
     command: "server -config=/config/vault.conf"
+    networks:
+      consul:
+        ipv4_address: 192.168.10.30
