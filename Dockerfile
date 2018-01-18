@@ -1,21 +1,18 @@
 
-FROM alpine:3.6
-
-MAINTAINER Bodo Schulz <bodo@boone-schulz.de>
+FROM alpine:3.7
 
 ENV \
-  ALPINE_MIRROR="mirror1.hs-esslingen.de/pub/Mirrors" \
-  ALPINE_VERSION="v3.6" \
   TERM=xterm \
-  BUILD_DATE="2017-10-12" \
-  VAULT_VERSION="0.8.3" \
-  VAULT_URL="https://releases.hashicorp.com/vault" \
-  APK_ADD="ca-certificates curl unzip"
+  TZ='Europe/Berlin' \
+  BUILD_DATE="2018-01-18" \
+  VAULT_VERSION="0.9.1" \
+  VAULT_URL="https://releases.hashicorp.com/vault"
 
 EXPOSE 8200
 
 LABEL \
-  version="1709-37" \
+  version="1801" \
+  maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Vault Docker Image" \
   org.label-schema.description="Inofficial Vault Docker Image" \
@@ -30,11 +27,10 @@ LABEL \
 # ---------------------------------------------------------------------------------------
 
 RUN \
-  echo "http://${ALPINE_MIRROR}/alpine/${ALPINE_VERSION}/main"       > /etc/apk/repositories && \
-  echo "http://${ALPINE_MIRROR}/alpine/${ALPINE_VERSION}/community" >> /etc/apk/repositories && \
-  apk --no-cache update && \
-  apk --no-cache upgrade && \
-  apk --no-cache add ${APK_ADD} && \
+  apk update --quiet --no-cache  && \
+  apk upgrade --quiet --no-cache  && \
+  apk add --no-cache --quiet --virtual .build-deps \
+    ca-certificates curl unzip && \
   curl \
     --silent \
     --location \
@@ -43,7 +39,7 @@ RUN \
     --output /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
     "${VAULT_URL}/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" && \
   unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin/ && \
-  apk --purge del ${APK_ADD} && \
+  apk --quiet --purge del .build-deps && \
   rm -rf \
     /tmp/* \
     /var/cache/apk/*
