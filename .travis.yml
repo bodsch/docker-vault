@@ -15,6 +15,7 @@ jobs:
         - make
     - stage: test images & upload
       script:
+        - make
         - docker-compose --file docker-compose_example.yml up --build -d
         - tests/test.sh
         - docker-compose --file docker-compose_example.yml kill
