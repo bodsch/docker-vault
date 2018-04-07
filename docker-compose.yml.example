@@ -1,5 +1,5 @@
 ---
-version: '2.0'
+version: '3.3'
 
 networks:
   consul:
@@ -11,20 +11,36 @@ networks:
 services:
 
   consul-master:
-    image: bodsch/docker-consul:1.0.0
+    image: bodsch/docker-consul
     container_name: consul-master
     hostname: consul-master
     ports:
       - 8400:8400
       - 8500:8500
       - 53:53
-    command: "agent -dev -client=0.0.0.0"
+    command: "agent -data-dir /data -server -bootstrap-expect 2 -ui -client=0.0.0.0"
     networks:
       consul:
         ipv4_address: 192.168.10.10
 
+  consul2:
+    image: bodsch/docker-consul
+    container_name: consul2
+    hostname: consul2
+    ports:
+      - 8400
+      - 8500
+      - 8600
+    links:
+      - consul-master:consul-master
+    command: 'agent -data-dir /data -server -join consul-master'
+    networks:
+      consul:
+        ipv4_address: 192.168.10.20
+
   vault:
     build: .
+    restart: always
     container_name: vault
     hostname: vault
     ports:

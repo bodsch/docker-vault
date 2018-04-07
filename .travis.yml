@@ -3,18 +3,21 @@ sudo: required
 services:
   - docker
 
-install:
-  - docker build --tag bodsch/docker-vault .
-  - docker run --detach --name vault bodsch/docker-vault
+env:
+  global:
+    - VAULT_VERSION=${VAULT_VERSION:-0.10.0-rc1}
+    - BUILD_DATE=$(date +"%Y-%m-%d")
 
-script:
-  - docker ps | grep -q vault
-
-after_success:
-  - |
-    [ "${TRAVIS_BRANCH}" == "master" ] && curl \
-      --request POST \
-      --header "Content-Type: application/json"  \
-      --data '{"source_type":"Branch","source_name":"master"}' \
-      https://registry.hub.docker.com/u/bodsch/docker-vault/trigger/${DOCKER_HUB_TOKEN}/
-
+jobs:
+  include:
+    - stage: build docker image
+      script:
+        - make
+    - stage: test images & upload
+      script:
+        - docker-compose --file docker-compose_example.yml up --build -d
+        - tests/test.sh
+        - docker-compose --file docker-compose_example.yml kill
+        - docker-compose --file docker-compose_example.yml down
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD"
+        - make publish

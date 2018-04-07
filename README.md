@@ -49,11 +49,14 @@ You can find the Container also at  [DockerHub](https://hub.docker.com/r/bodsch/
 ```
 alias vault='docker exec -it vault vault "$@"'
 export VAULT_ADDR="http://localhost:8200"
-vault init -address=${VAULT_ADDR} > keys.txt
-vault unseal -address=${VAULT_ADDR} $(grep 'Key 1:' keys.txt | awk '{print $NF}')
-vault unseal -address=${VAULT_ADDR} $(grep 'Key 2:' keys.txt | awk '{print $NF}')
-vault unseal -address=${VAULT_ADDR} $(grep 'Key 3:' keys.txt | awk '{print $NF}')
-vault status -adress=${VAULT_ADDR}
+vault operator init -address=${VAULT_ADDR} -format=json > keys.txt
+vault status -address=${VAULT_ADDR}
+
+vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[0])
+vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[1])
+vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[2])
+
+vault status -address=${VAULT_ADDR}
 
 export VAULT_TOKEN=$(grep 'Initial Root Token:' keys.txt | awk '{print substr($NF, 1, length($NF)-1)}')
 vault auth -address=${VAULT_ADDR} ${VAULT_TOKEN}

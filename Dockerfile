@@ -1,17 +1,47 @@
 
-FROM alpine:3.7
+FROM golang:1.10-alpine as builder
 
-ENV \
-  TERM=xterm \
-  TZ='Europe/Berlin' \
-  BUILD_DATE="2018-01-18" \
-  VAULT_VERSION="0.9.1" \
-  VAULT_URL="https://releases.hashicorp.com/vault"
+ARG BUILD_DATE
+ARG BUILD_TYPE
+ARG VAULT_VERSION
+
+# ---------------------------------------------------------------------------------------
+
+RUN \
+  apk update --no-cache && \
+  apk upgrade --no-cache && \
+  apk add \
+    bash git make zip
+
+RUN \
+  export GOPATH=/opt/go && \
+  echo "get sources ..." && \
+  go get github.com/hashicorp/vault || true && \
+  cd ${GOPATH}/src/github.com/hashicorp/vault && \
+  if [ "${BUILD_TYPE}" == "stable" ] ; then \
+    echo "switch to stable Tag v${VAULT_VERSION}" && \
+    git checkout tags/v${VAULT_VERSION} 2> /dev/null ; \
+  fi
+
+RUN \
+  export GOPATH=/opt/go && \
+  export PATH=${GOPATH}/bin:${PATH} && \
+  cd ${GOPATH}/src/github.com/hashicorp/vault && \
+  export GOMAXPROCS=4 && \
+  make bootstrap && \
+  make && \
+  cp -v bin/vault /usr/bin/
+
+CMD ["/bin/bash"]
+
+# ---------------------------------------------------------------------------------------
+
+FROM alpine:3.7
 
 EXPOSE 8200
 
 LABEL \
-  version="1801" \
+  version="1804" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Vault Docker Image" \
@@ -26,23 +56,7 @@ LABEL \
 
 # ---------------------------------------------------------------------------------------
 
-RUN \
-  apk update --quiet --no-cache  && \
-  apk upgrade --quiet --no-cache  && \
-  apk add --no-cache --quiet --virtual .build-deps \
-    ca-certificates curl unzip && \
-  curl \
-    --silent \
-    --location \
-    --retry 3 \
-    --cacert /etc/ssl/certs/ca-certificates.crt \
-    --output /tmp/vault_${VAULT_VERSION}_linux_amd64.zip \
-    "${VAULT_URL}/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip" && \
-  unzip /tmp/vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin/ && \
-  apk --quiet --purge del .build-deps && \
-  rm -rf \
-    /tmp/* \
-    /var/cache/apk/*
+COPY --from=builder /usr/bin/vault /usr/bin/vault
 
 ENTRYPOINT [ "/usr/bin/vault" ]
 

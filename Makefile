@@ -8,18 +8,29 @@ REPO     = docker-vault
 NAME     = vault
 INSTANCE = default
 
+BUILD_DATE    := $(shell date +%Y-%m-%d)
+BUILD_TYPE    ?= "stable"
+VAULT_VERSION ?= "0.10.0-rc1"
+
 .PHONY: build push shell run start stop rm release
 
 
-build:
+default: build
+
+params:
+	@echo ""
+	@echo " VAULT_VERSION : ${VAULT_VERSION}"
+	@echo " BUILD_DATE    : $(BUILD_DATE)"
+	@echo ""
+
+build: params
 	docker build \
 		--rm \
+		--compress \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg BUILD_TYPE=$(BUILD_TYPE) \
+		--build-arg VAULT_VERSION=${VAULT_VERSION} \
 		--tag $(NS)/$(REPO):$(VERSION) .
-
-clean:
-	docker rmi \
-		--force \
-		$(NS)/$(REPO):$(VERSION)
 
 history:
 	docker history \
@@ -71,9 +82,14 @@ stop:
 	docker stop \
 		$(NAME)-$(INSTANCE)
 
-rm:
-	docker rm \
-		$(NAME)-$(INSTANCE)
+clean:
+	docker rmi -f `docker images -q ${NS}/${REPO} | uniq`
+
+#
+# List all images
+#
+list:
+	-docker images $(NS)/$(REPO)*
 
 release: build
 	make push -e VERSION=$(VERSION)
