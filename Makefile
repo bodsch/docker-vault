@@ -8,9 +8,10 @@ REPO     = docker-vault
 NAME     = vault
 INSTANCE = default
 
-BUILD_DATE    := $(shell date +%Y-%m-%d)
-BUILD_TYPE    ?= "stable"
-VAULT_VERSION ?= "0.10.0-rc1"
+BUILD_DATE     := $(shell date +%Y-%m-%d)
+BUILD_VERSION  := $(shell date +%y%m)
+BUILD_TYPE     ?= stable
+VAULT_VERSION  ?= 0.10.3
 
 .PHONY: build push shell run start stop rm release
 
@@ -28,17 +29,18 @@ build: params
 		--rm \
 		--compress \
 		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		--build-arg BUILD_VERSION=$(BUILD_VERSION) \
 		--build-arg BUILD_TYPE=$(BUILD_TYPE) \
 		--build-arg VAULT_VERSION=${VAULT_VERSION} \
-		--tag $(NS)/$(REPO):$(VERSION) .
+		--tag $(NS)/$(REPO):$(VAULT_VERSION) .
 
 history:
 	docker history \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(VAULT_VERSION)
 
 push:
 	docker push \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(VAULT_VERSION)
 
 shell:
 	docker run \
@@ -50,7 +52,7 @@ shell:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION) \
+		$(NS)/$(REPO):$(VAULT_VERSION) \
 		/bin/sh
 
 run:
@@ -60,7 +62,7 @@ run:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(VAULT_VERSION)
 
 exec:
 	docker exec \
@@ -76,7 +78,7 @@ start:
 		$(PORTS) \
 		$(VOLUMES) \
 		$(ENV) \
-		$(NS)/$(REPO):$(VERSION)
+		$(NS)/$(REPO):$(VAULT_VERSION)
 
 stop:
 	docker stop \
@@ -92,6 +94,6 @@ list:
 	-docker images $(NS)/$(REPO)*
 
 release: build
-	make push -e VERSION=$(VERSION)
+	make push -e VERSION=$(VAULT_VERSION)
 
 default: build
