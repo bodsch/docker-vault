@@ -1,7 +1,8 @@
 
-FROM golang:1.10-alpine as builder
+FROM golang:1-alpine as builder
 
 ARG BUILD_DATE
+ARG BUILD_VERSION
 ARG BUILD_TYPE
 ARG VAULT_VERSION
 
@@ -11,7 +12,7 @@ RUN \
   apk update --no-cache && \
   apk upgrade --no-cache && \
   apk add \
-    bash git make zip
+    bash git make ncurses zip
 
 RUN \
   export GOPATH=/opt/go && \
@@ -24,6 +25,7 @@ RUN \
   fi
 
 RUN \
+  export TERM=xterm && \
   export GOPATH=/opt/go && \
   export PATH=${GOPATH}/bin:${PATH} && \
   cd ${GOPATH}/src/github.com/hashicorp/vault && \
@@ -36,12 +38,20 @@ CMD ["/bin/bash"]
 
 # ---------------------------------------------------------------------------------------
 
-FROM alpine:3.7
+FROM alpine:3.8
 
 EXPOSE 8200
 
+COPY --from=builder /usr/bin/vault /usr/bin/vault
+
+ENTRYPOINT [ "/usr/bin/vault" ]
+
+CMD [ "version" ]
+
+# ---------------------------------------------------------------------------------------
+
 LABEL \
-  version="1804" \
+  version="${BUILD_VERSION}" \
   maintainer="Bodo Schulz <bodo@boone-schulz.de>" \
   org.label-schema.build-date=${BUILD_DATE} \
   org.label-schema.name="Vault Docker Image" \
@@ -53,13 +63,5 @@ LABEL \
   org.label-schema.schema-version="1.0" \
   com.microscaling.docker.dockerfile="/Dockerfile" \
   com.microscaling.license="GNU Lesser General Public License v2.1"
-
-# ---------------------------------------------------------------------------------------
-
-COPY --from=builder /usr/bin/vault /usr/bin/vault
-
-ENTRYPOINT [ "/usr/bin/vault" ]
-
-CMD [ "version" ]
 
 # ---------------------------------------------------------------------------------------
