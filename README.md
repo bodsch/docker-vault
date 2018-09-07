@@ -40,7 +40,7 @@ You can find the Container also at  [DockerHub](https://hub.docker.com/r/bodsch/
 
 # First steps
 
-[look, read and play(https://www.katacoda.com/courses/docker-production/vault-secrets)
+[look, read and play](https://www.katacoda.com/courses/docker-production/vault-secrets)
 
 ```
 /src/private/docker-vault $ docker-compose -f docker-compose.yml.example up --build

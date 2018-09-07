@@ -9,9 +9,9 @@ ARG VAULT_VERSION
 # ---------------------------------------------------------------------------------------
 
 RUN \
-  apk update --no-cache && \
-  apk upgrade --no-cache && \
-  apk add \
+  apk update  --quiet && \
+  apk upgrade --quiet && \
+  apk add     --quiet \
     bash git make ncurses zip
 
 RUN \
