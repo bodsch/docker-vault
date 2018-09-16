@@ -6,7 +6,18 @@ ARG BUILD_VERSION
 ARG BUILD_TYPE
 ARG VAULT_VERSION
 
+ENV \
+  TERM=xterm \
+  GOPATH=/opt/go \
+  GOMAXPROCS=4 \
+  GOOS=linux
+
 # ---------------------------------------------------------------------------------------
+
+RUN \
+  echo "export BUILD_DATE=${BUILD_DATE}"         > /etc/profile.d/vault.sh && \
+  echo "export BUILD_TYPE=${BUILD_TYPE}"        >> /etc/profile.d/vault.sh && \
+  echo "export VAULT_VERSION=${VAULT_VERSION}"  >> /etc/profile.d/vault.sh
 
 RUN \
   apk update  --quiet && \
@@ -15,7 +26,6 @@ RUN \
     bash git make ncurses zip
 
 RUN \
-  export GOPATH=/opt/go && \
   echo "get sources ..." && \
   go get github.com/hashicorp/vault || true && \
   cd ${GOPATH}/src/github.com/hashicorp/vault && \
@@ -25,11 +35,8 @@ RUN \
   fi
 
 RUN \
-  export TERM=xterm && \
-  export GOPATH=/opt/go && \
   export PATH=${GOPATH}/bin:${PATH} && \
   cd ${GOPATH}/src/github.com/hashicorp/vault && \
-  export GOMAXPROCS=4 && \
   make bootstrap && \
   make && \
   cp -v bin/vault /usr/bin/
@@ -42,7 +49,8 @@ FROM alpine:3.8
 
 EXPOSE 8200
 
-COPY --from=builder /usr/bin/vault /usr/bin/vault
+COPY --from=builder /etc/profile.d/vault.sh  /etc/profile.d/vault.sh
+COPY --from=builder /usr/bin/vault           /usr/bin/vault
 
 ENTRYPOINT [ "/usr/bin/vault" ]
 
