@@ -5,7 +5,7 @@ services:
 
 env:
   global:
-    - VAULT_VERSION=${VAULT_VERSION:-0.11.1}
+    - VAULT_VERSION=${VAULT_VERSION:-0.11.3}
     - BUILD_DATE=$(date +"%Y-%m-%d")
 
 jobs:
@@ -17,6 +17,7 @@ jobs:
       script:
         - make
         - docker-compose --file docker-compose_example.yml up --build -d
+        - sleep 10s
         - tests/test.sh
         - docker-compose --file docker-compose_example.yml kill
         - docker-compose --file docker-compose_example.yml down
