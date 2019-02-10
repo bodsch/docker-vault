@@ -29,6 +29,6 @@ jobs:
         - docker tag  ${USER}/vault:latest ${DOCKER_USERNAME}/docker-vault:latest
         - docker push ${DOCKER_USERNAME}/docker-vault:latest
         #
-        - docker tag  ${DOCKER_USERNAME}/docker-vault:latest ${DOCKER_USERNAME}/docker-vault:${BUILD_VERSION}
-        - docker push ${DOCKER_USERNAME}/docker-vault:${BUILD_VERSION}
+        - docker tag  ${DOCKER_USERNAME}/docker-vault:latest ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
+        - docker push ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
         - docker logout
