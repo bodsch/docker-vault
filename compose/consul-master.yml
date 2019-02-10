@@ -1,0 +1,17 @@
+---
+version: '3.3'
+
+services:
+
+  consul-master:
+    image: bodsch/docker-consul
+    container_name: consul-master
+    hostname: consul-master
+    ports:
+      - 8400
+      - 8500:8500
+      - 53
+    command: "agent -data-dir /data -server -bootstrap-expect 2 -ui -client=0.0.0.0"
+    networks:
+      consul:
+        ipv4_address: 192.168.10.10

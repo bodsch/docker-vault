@@ -1,5 +1,0 @@
-PORTS = \
-  --publish 8200:8200
-
-VOLUMES =
-ENV =

@@ -1,0 +1,9 @@
+---
+version: '3.3'
+
+networks:
+  consul:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
