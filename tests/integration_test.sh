@@ -60,17 +60,23 @@ unseal() {
 
   echo "vault init .."
   vault operator init -address=${VAULT_ADDR} -format=json > keys.txt
+
+  key_1=$(cat keys.txt | jq --raw-output .unseal_keys_b64[0])
+  key_2=$(cat keys.txt | jq --raw-output .unseal_keys_b64[1])
+  key_3=$(cat keys.txt | jq --raw-output .unseal_keys_b64[2])
+
   echo ""
-  echo "vaul unseal .."
-  vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[0])
+  echo "vault unseal .."
+  vault operator unseal -address=${VAULT_ADDR} ${key_1}
   echo ""
-  vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[1])
+  vault operator unseal -address=${VAULT_ADDR} ${key_2}
   echo ""
-  vault operator unseal -address=${VAULT_ADDR} $(jq --raw-output .unseal_keys_b64 keys.txt  | jq --raw-output .[2])
+  vault operator unseal -address=${VAULT_ADDR} ${key_3}
   echo ""
   echo "vault status .."
   vault status -address=${VAULT_ADDR}
   echo ""
+
 }
 
 inspect

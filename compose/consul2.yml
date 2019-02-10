@@ -9,7 +9,7 @@ services:
     hostname: consul2
     ports:
       - 8400
-      - 8500:8500
+      - 8500
       - 8600
     links:
       - consul-master:consul-master
