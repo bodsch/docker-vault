@@ -10,11 +10,15 @@ vault() {
 
 inspect() {
 
+  echo ""
   echo "inspect needed containers"
-  for d in consul-master consul2 vault
+  for d in $(docker ps | tail -n +2 | awk  '{print($1)}')
   do
     # docker inspect --format "{{lower .Name}}" ${d}
-    docker inspect --format '{{with .State}} {{$.Name}} has pid {{.Pid}} {{end}}' ${d}
+    c=$(docker inspect --format '{{with .State}} {{$.Name}} has pid {{.Pid}} {{end}}' ${d})
+    s=$(docker inspect --format '{{json .State.Health }}' ${d} | jq --raw-output .Status)
+
+    printf "%-40s - %s\n"  "${c}" "${s}"
   done
 }
 
@@ -29,10 +33,9 @@ api_request_consul() {
   if [[ $? -eq 0 ]]
   then
     echo "api request for consul $1 are successfull"
-    echo ""
   else
     echo ${code}
-    echo "api request failed"
+    echo -e "\napi request failed\n"
     exit 1
   fi
 }
@@ -45,8 +48,7 @@ api_request_vault() {
 
   if [[ $? -eq 0 ]]
   then
-    echo "api request for vault are successfull"
-    echo ""
+    echo -e "api request for vault are successfull"
   else
     echo ${code}
     echo "api request failed"
@@ -58,25 +60,32 @@ unseal() {
 
   VAULT_ADDR="http://localhost:8200"
 
-  echo "vault init .."
-  vault operator init -address=${VAULT_ADDR} -format=json > keys.txt
+  vault operator init -address=${VAULT_ADDR} -format=json > keys.json
 
-  key_1=$(cat keys.txt | jq --raw-output .unseal_keys_b64[0])
-  key_2=$(cat keys.txt | jq --raw-output .unseal_keys_b64[1])
-  key_3=$(cat keys.txt | jq --raw-output .unseal_keys_b64[2])
+  if [[ $(grep -c "Vault is already initialized" keys.json) -eq 0 ]]
+  then
+    echo "vault init .."
 
-  echo ""
-  echo "vault unseal .."
-  vault operator unseal -address=${VAULT_ADDR} ${key_1}
-  echo ""
-  vault operator unseal -address=${VAULT_ADDR} ${key_2}
-  echo ""
-  vault operator unseal -address=${VAULT_ADDR} ${key_3}
-  echo ""
-  echo "vault status .."
-  vault status -address=${VAULT_ADDR}
-  echo ""
+    key_1=$(jq --raw-output .unseal_keys_b64[0] keys.json)
+    key_2=$(jq --raw-output .unseal_keys_b64[1] keys.json)
+    key_3=$(jq --raw-output .unseal_keys_b64[2] keys.json)
 
+    echo ""
+    echo "vault unseal .."
+    vault operator unseal -address=${VAULT_ADDR} ${key_1}
+    echo ""
+    vault operator unseal -address=${VAULT_ADDR} ${key_2}
+    echo ""
+    vault operator unseal -address=${VAULT_ADDR} ${key_3}
+    echo ""
+    echo "vault status .."
+    vault status -address=${VAULT_ADDR}
+    echo ""
+  else
+    echo "Vault is already initialized"
+  fi
+
+  rm -f keys.json
 }
 
 inspect

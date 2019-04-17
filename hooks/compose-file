@@ -6,7 +6,7 @@
 [[ -e hooks/environment ]] && . hooks/environment
 
 cat << EOF > .env
-BUILD_IMAGE=${BUILD_IMAGE}
+BUILD_TYPE=${BUILD_TYPE}
 BUILD_DATE=${BUILD_DATE}
 BUILD_VERSION=${BUILD_VERSION}
 VAULT_VERSION=${VAULT_VERSION}

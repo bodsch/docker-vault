@@ -59,6 +59,13 @@ ENTRYPOINT ["/usr/bin/vault"]
 
 CMD ["version"]
 
+HEALTHCHECK \
+  --interval=5s \
+  --timeout=2s \
+  --retries=12 \
+  --start-period=10s \
+  CMD ps ax -o pid,args | pgrep -v grep | pgrep vault || exit 1
+
 # ---------------------------------------------------------------------------------------
 
 LABEL \

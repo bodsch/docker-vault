@@ -8,22 +8,22 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        - BUILD_IMAGE=${BUILD_IMAGE}
-        - BUILD_DATE=${BUILD_DATE}
-        - BUILD_VERSION=${BUILD_VERSION}
-        - VAULT_VERSION=${VAULT_VERSION}
+        - BUILD_TYPE
+        - BUILD_DATE
+        - BUILD_VERSION
+        - VAULT_VERSION
     restart: always
     container_name: vault
     hostname: vault
     ports:
       - 8200:8200
     links:
-      - consul-master:consul
+      - consul-master
     depends_on:
       - consul-master
     volumes:
       - ./config/vault.conf:/config/vault.conf
-    command: "server -config=/config/vault.conf"
+    command: "server -config=/config/vault.conf -log-level=debug"
     networks:
       consul:
         ipv4_address: 192.168.10.30
