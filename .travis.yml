@@ -1,37 +1,30 @@
 sudo: required
-
 services:
-  - docker
-
+- docker
 env:
   global:
-    - VAULT_VERSION=${VAULT_VERSION:-1.1.1}
-    - BUILD_DATE=$(date +"%Y-%m-%d")
-
+  - VAULT_VERSION=${VAULT_VERSION:-1.1.1}
+  - BUILD_DATE=$(date +"%Y-%m-%d")
+  - secure: BA95SffnIKl4u0om5NhJDKItMbpuGGCGYwvEuSWZkbn14T3yhr8AoB8YezPWbgMr9pO3GS6zifVpvtWzXcAQT3is66yZmSmR+jR3n49ZYrStcessmEMIRwCH2HgDJ6o6NEkEhcUA7CSQkDkOjJXGbIzkSKAj0Sk1p2RRGlEuZvLUU1VMdqJWcUcWflEWE1hxu2d3xS9P4i0leXJfX++CcxirNG3+TPgeGwpehzv1lnrbZVtiS6nYauj6i0M/trAxDO7RAUJAhVgSt69GCFYuNPd0lvPJdAqseazkjlbYbnTB7lJXGuAUVUgTStURiEOqCDnDVyKra3Q1N3Kov2QIXSvoGylvg+gVyIRMHdTimUsKH9DylmMy+AICWB6wdZjQFeb6wqXpZdY4/E8v+Cgc2/sjVWCxULuvWuH/CUY1xLNO7e03UP7fnTM8NOIv368NeW8M+N45nPfZDIbuI0jZrO5gkAJO9U4hsJmsjxPEq/IiSVesr3MK3HqM9q1MzZWU7VpnYP46xscjpDkuq/V3gj5Jf+JxWXUtlIQTG7Z76dgjCZnlEQozjXHqX4ZqwoX1o1i1B5E9PDAox6JV1oEmiViDAu2YGwXDC8hC+AIrGJh0S70Vnblftcg3fW6ODzY+BhmbRqBsjqnH5t73gzh/FKUsnFSGULTvTUaGTa3vREQ=
 jobs:
   include:
-    - stage: build docker image
-      script:
-        - make
-
-    - stage: test images
-      script:
-        - make compose-file
-        - docker-compose up --build -d
-        - sleep 10s
-        - make test
-        - docker-compose kill
-        - docker-compose down
-
-    - stage: upload
-      script:
-        - make
-        - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
-        #
-        - docker tag  ${USER}/vault:latest ${DOCKER_USERNAME}/docker-vault:latest
-        - docker push ${DOCKER_USERNAME}/docker-vault:latest
-        #
-        - docker tag  ${USER}/vault:latest ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
-        - docker push ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
-        #
-        - docker logout
+  - stage: build docker image
+    script:
+    - make
+  - stage: test images
+    script:
+    - make compose-file
+    - docker-compose up --build -d
+    - sleep 10s
+    - make test
+    - docker-compose kill
+    - docker-compose down
+  - stage: upload
+    script:
+    - make
+    - docker login -u="${DOCKER_USERNAME}" -p="${DOCKER_PASSWORD}"
+    - docker tag  ${USER}/vault:latest ${DOCKER_USERNAME}/docker-vault:latest
+    - docker push ${DOCKER_USERNAME}/docker-vault:latest
+    - docker tag  ${USER}/vault:latest ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
+    - docker push ${DOCKER_USERNAME}/docker-vault:${VAULT_VERSION}
+    - docker logout
